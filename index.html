@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lời Nhắn An Yên</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Cố định giao diện Thiên nhiên / Xanh lá */
+      :root {
+        --bg-gradient: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+        --env-back: #2d6a4f;
+        --env-front: #40916c;
+        --env-flap: #1b4332;
+        --seal-bg: #ffb703;
+        --paper-bg: #f8fff9;
+        --paper-line: #d8f3dc;
+        --text-color: #1b4332;
+        --accent-color: #2d6a4f;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 45px;
+        background: var(--bg-gradient);
+        font-family: "Quicksand", sans-serif;
+        padding: 20px;
+        overflow: hidden;
+      }
+
+      /* Khu vực chứa phong bì */
+      .stage {
+        position: relative;
+        width: 340px;
+        height: 230px;
+        margin-top: 120px;
+        perspective: 1000px;
+      }
+
+      .envelope {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: var(--env-back);
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+      }
+
+      /* Nắp phong bì */
+      .flap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        border-left: 170px solid transparent;
+        border-right: 170px solid transparent;
+        border-top: 130px solid var(--env-flap);
+        transform-origin: top;
+        transition:
+          transform 0.6s ease,
+          z-index 0.2s ease;
+        z-index: 4;
+      }
+
+      /* Túi phong bì */
+      .pocket {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        border-left: 170px solid var(--env-front);
+        border-right: 170px solid var(--env-front);
+        border-bottom: 120px solid var(--env-back);
+        border-top: 110px solid transparent;
+        border-radius: 0 0 12px 12px;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      /* Con dấu sáp */
+      .wax-seal {
+        position: absolute;
+        top: 95px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 52px;
+        height: 52px;
+        background: var(--seal-bg);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        z-index: 5;
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+
+      /* Tờ giấy viết thư */
+      .letter {
+        position: absolute;
+        bottom: 10px;
+        left: 15px;
+        width: 310px;
+        height: 200px;
+        background: var(--paper-bg);
+        border-radius: 8px;
+        padding: 18px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+        transition:
+          transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
+          height 0.7s ease;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .letter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: var(--accent-color);
+        font-weight: 600;
+        border-bottom: 1px dashed var(--accent-color);
+        padding-bottom: 4px;
+      }
+
+      /* Vùng gõ nội dung */
+      .letter-content {
+        width: 100%;
+        height: 100%;
+        background-image: repeating-linear-gradient(
+          transparent,
+          transparent 27px,
+          var(--paper-line) 28px
+        );
+        line-height: 28px;
+        font-family: "Dancing Script", cursive;
+        font-size: 21px;
+        color: var(--text-color);
+        outline: none;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+
+      /* Trạng thái MỞ THƯ */
+      .envelope.open .flap {
+        transform: rotateX(180deg);
+        z-index: 1;
+      }
+
+      .envelope.open .wax-seal {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.5);
+        pointer-events: none;
+      }
+
+      .envelope.open .letter {
+        transform: translateY(-165px);
+        height: 310px;
+        z-index: 5;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+        cursor: text;
+      }
+
+      /* Thanh chèn nhanh Icon */
+      .emoji-picker {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid var(--paper-line);
+        justify-content: center;
+      }
+
+      .emoji-btn {
+        background: transparent;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+
+      .emoji-btn:hover {
+        transform: scale(1.3);
+      }
+
+      /* Nút điều khiển bên dưới */
+      .controls {
+        display: flex;
+        gap: 12px;
+        z-index: 10;
+      }
+
+      .btn {
+        padding: 10px 22px;
+        border: none;
+        border-radius: 25px;
+        background: var(--accent-color);
+        color: #fff;
+        font-family: "Quicksand", sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition:
+          transform 0.2s,
+          opacity 0.2s;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        opacity: 0.92;
+      }
+
+      .btn-secondary {
+        background: #fff;
+        color: var(--accent-color);
+      }
+
+      /* Hiệu ứng icon bay lên */
+      .floating-icon {
+        position: fixed;
+        font-size: 24px;
+        pointer-events: none;
+        animation: floatUp 2.5s ease-out forwards;
+        z-index: 99;
+      }
+
+      @keyframes floatUp {
+        0% {
+          transform: translateY(0) scale(0.8) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-250px) scale(1.4) rotate(25deg);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sân khấu chính chứa phong bì -->
+    <div class="stage">
+      <div class="envelope" id="envelope">
+        <div class="flap"></div>
+        <div class="wax-seal">🌿</div>
+
+        <!-- Lá thư bên trong -->
+        <div class="letter" id="letter">
+          <div class="letter-header">
+            <span>Lời Nhắn An Yên</span>
+            <span>🍀</span>
+          </div>
+
+          <!-- Vùng gõ nội dung trực tiếp -->
+          <div
+            class="letter-content"
+            id="letterText"
+            contenteditable="true"
+            spellcheck="false"
+          >
+            Gửi bạn Tiên, mùa đông đến rồi hãy giữ ấm cơ thể và tinh thần nhé!
+            Chúc cậu một ngày làm việc thật tốt 🌿
+          </div>
+
+          <!-- Thanh chèn nhanh Icon -->
+          <div class="emoji-picker" id="emojiPicker"></div>
+        </div>
+
+        <div class="pocket"></div>
+      </div>
+    </div>
+
+    <!-- Các nút điều khiển -->
+    <div class="controls">
+      <button class="btn" id="toggleBtn">Mở thư</button>
+      <button class="btn btn-secondary" id="clearBtn">Xóa chữ</button>
+    </div>
+
+    <script>
+      const envelope = document.getElementById("envelope");
+      const toggleBtn = document.getElementById("toggleBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const letter = document.getElementById("letter");
+      const letterText = document.getElementById("letterText");
+      const emojiPicker = document.getElementById("emojiPicker");
+
+      const natureEmojis = ["🌿", "🍀", "🌻", "🦋", "☀️", "🌈", "🍃"];
+      let isOpen = false;
+
+      // Tạo danh sách nút icon bên dưới lá thư
+      natureEmojis.forEach((emoji) => {
+        const btn = document.createElement("button");
+        btn.className = "emoji-btn";
+        btn.textContent = emoji;
+        btn.type = "button";
+        btn.title = "Chèn icon này vào thư";
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          insertEmojiAtCursor(emoji);
+        });
+        emojiPicker.appendChild(btn);
+      });
+
+      // Chèn icon vào vị trí con trỏ đang gõ
+      function insertEmojiAtCursor(emoji) {
+        letterText.focus();
+        const selection = window.getSelection();
+        if (
+          selection.rangeCount > 0 &&
+          letterText.contains(selection.anchorNode)
+        ) {
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          const textNode = document.createTextNode(emoji);
+          range.insertNode(textNode);
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          letterText.innerHTML += emoji;
+        }
+      }
+
+      // Hiệu ứng bắn icon bay lên khi mở thư
+      function spawnFloatingIcons() {
+        for (let i = 0; i < 10; i++) {
+          setTimeout(() => {
+            const span = document.createElement("span");
+            span.className = "floating-icon";
+            span.textContent =
+              natureEmojis[Math.floor(Math.random() * natureEmojis.length)];
+
+            const rect = envelope.getBoundingClientRect();
+            const randomX = rect.left + Math.random() * rect.width;
+            span.style.left = `${randomX}px`;
+            span.style.top = `${rect.top + 40}px`;
+
+            document.body.appendChild(span);
+            setTimeout(() => span.remove(), 2500);
+          }, i * 100);
+        }
+      }
+
+      // Hàm Mở / Đóng thư
+      function toggleEnvelope() {
+        isOpen = !isOpen;
+        if (isOpen) {
+          envelope.classList.add("open");
+          toggleBtn.textContent = "Đóng thư";
+          spawnFloatingIcons();
+        } else {
+          envelope.classList.remove("open");
+          toggleBtn.textContent = "Mở thư";
+        }
+      }
+
+      envelope.addEventListener("click", () => {
+        if (!isOpen) toggleEnvelope();
+      });
+
+      letter.addEventListener("click", (e) => {
+        if (isOpen) e.stopPropagation();
+      });
+
+      toggleBtn.addEventListener("click", toggleEnvelope);
+
+      clearBtn.addEventListener("click", () => {
+        if (!isOpen) toggleEnvelope();
+        letterText.innerHTML = "";
+        letterText.focus();
+      });
+    </script>
+  </body>
+</html>
